@@ -3,7 +3,7 @@
 
 CBLiteEktorp is something to make it easy to access a Couchbase Lite mobile database via Ektorp.  
 
-# How to use CBLiteEktorp in your Android Studio project
+# How to use in your project
 
 This assumes that `~/MyProject` is an Android Studio project which contains a settings.gradle file
 
