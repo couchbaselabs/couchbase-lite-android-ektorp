@@ -2,6 +2,9 @@ package com.couchbase.cblite.testapp.ektorp.tests;
 
 import org.ektorp.support.OpenCouchDbDocument;
 
+import java.util.List;
+import java.util.Set;
+
 @SuppressWarnings("serial")
 public class TestObject extends OpenCouchDbDocument {
 
@@ -10,6 +13,25 @@ public class TestObject extends OpenCouchDbDocument {
     private String baz;
     private String status;
     private String key;
+    private List<String> stuff;
+    private Set<String> stuffSet;
+
+    public Set<String> getStuffSet() {
+        return stuffSet;
+    }
+
+    public void setStuffSet(Set<String> stuffSet) {
+        this.stuffSet = stuffSet;
+    }
+
+
+    public List<String> getStuff() {
+        return stuff;
+    }
+
+    public void setStuff(List<String> stuff) {
+        this.stuff = stuff;
+    }
 
     public Integer getFoo() {
         return foo;

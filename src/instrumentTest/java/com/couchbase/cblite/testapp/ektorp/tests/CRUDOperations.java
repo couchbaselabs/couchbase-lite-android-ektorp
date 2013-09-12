@@ -16,7 +16,11 @@ import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CRUDOperations extends CBLiteEktorpTestCase {
 
@@ -30,6 +34,13 @@ public class CRUDOperations extends CBLiteEktorpTestCase {
         CouchDbConnector dbConnector = dbInstance.createConnector(DEFAULT_TEST_DB, true);
 
         TestObject test = new TestObject(1, false, "ektorp");
+        List<String> stuff = new ArrayList<String>(Arrays.asList("one", "two", "three"));
+        test.setStuff(stuff);
+        Set<String> stuffSet = new HashSet<String>();
+        stuffSet.add("itemA");
+        stuffSet.add("itemB");
+        stuffSet.add("itemC");
+        test.setStuffSet(stuffSet);
 
         dbConnector.create(test);
         Assert.assertTrue(test.getId().length() >= 10);
@@ -41,6 +52,10 @@ public class CRUDOperations extends CBLiteEktorpTestCase {
         Assert.assertEquals(read.getFoo(), test.getFoo());
         Assert.assertEquals(read.getBar(), test.getBar());
         Assert.assertEquals(read.getBaz(), test.getBaz());
+
+        Assert.assertEquals("one", read.getStuff().get(0));
+        Assert.assertEquals("three", read.getStuff().get(2));
+        Assert.assertTrue(read.getStuffSet().contains("itemA"));
 
         //now update it
         read.setStatus("updated!");
