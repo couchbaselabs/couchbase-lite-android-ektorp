@@ -10,7 +10,7 @@ This assumes that `~/MyProject` is an Android Studio project which contains a se
 
 ```
 $ cd ~/MyProject
-$ git submodule add https://github.com/couchbaselabs/CBLiteEktorp.git CBLiteEktorp
+$ git submodule add https://github.com/couchbaselabs/couchbase-lite-android-ektorp.git CBLiteEktorp
 ```
 
 *Step #2*: add an entry to settings.gradle.
