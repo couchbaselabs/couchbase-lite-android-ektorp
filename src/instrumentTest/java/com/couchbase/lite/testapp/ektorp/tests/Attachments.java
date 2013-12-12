@@ -1,6 +1,6 @@
-package com.couchbase.cblite.testapp.ektorp.tests;
+package com.couchbase.lite.testapp.ektorp.tests;
 
-import com.couchbase.cblite.ektorp.CBLiteHttpClient;
+import com.couchbase.lite.ektorp.CBLiteHttpClient;
 
 import junit.framework.Assert;
 
@@ -19,7 +19,7 @@ public class Attachments extends CBLiteEktorpTestCase {
 
     public void testAttachments() throws IOException {
 
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         CouchDbConnector dbConnector = dbInstance.createConnector(DEFAULT_TEST_DB, true);

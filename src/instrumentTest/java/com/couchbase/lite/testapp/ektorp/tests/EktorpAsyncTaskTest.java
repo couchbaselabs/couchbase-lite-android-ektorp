@@ -1,21 +1,19 @@
-package com.couchbase.cblite.testapp.ektorp.tests;
+package com.couchbase.lite.testapp.ektorp.tests;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 
-import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.CBLView;
-import com.couchbase.cblite.CBLViewMapBlock;
-import com.couchbase.cblite.CBLViewMapEmitBlock;
-import com.couchbase.cblite.ektorp.CBLiteHttpClient;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Emitter;
+import com.couchbase.lite.Mapper;
+import com.couchbase.lite.View;
+import com.couchbase.lite.ektorp.CBLiteHttpClient;
 
 import junit.framework.Assert;
 
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
-import org.ektorp.DbAccessException;
 import org.ektorp.ViewQuery;
 import org.ektorp.android.util.ChangesFeedAsyncTask;
 import org.ektorp.android.util.CouchbaseViewListAdapter;
@@ -40,7 +38,7 @@ public class EktorpAsyncTaskTest extends CBLiteEktorpTestCase {
 
         final CountDownLatch doneSignal = new CountDownLatch(1);
 
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -54,7 +52,7 @@ public class EktorpAsyncTaskTest extends CBLiteEktorpTestCase {
         new CouchbaseViewListAdapter(couchDbConnector, viewQuery, follow) {
 
             @Override
-            public View getView(int i, View view, ViewGroup viewGroup) {
+            public android.view.View getView(int i, android.view.View view, ViewGroup viewGroup) {
                 return null;
             }
 
@@ -94,7 +92,7 @@ public class EktorpAsyncTaskTest extends CBLiteEktorpTestCase {
     public void testWedgedAsyncTasks() {
 
         final CountDownLatch doneSignal = new CountDownLatch(1);
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -133,19 +131,18 @@ public class EktorpAsyncTaskTest extends CBLiteEktorpTestCase {
 
     }
 
-    public static CBLView createView(CBLDatabase db) {
-        CBLView view = db.getViewNamed(String.format("%s/%s", dDocName, viewName));
-        view.setMapReduceBlocks(new CBLViewMapBlock() {
-
+    public static View createView(Database db) {
+        View view = db.getView(String.format("%s/%s", dDocName, viewName));
+        view.setMap(new Mapper() {
             @Override
-            public void map(Map<String, Object> document, CBLViewMapEmitBlock emitter) {
+            public void map(Map<String, Object> document, Emitter emitter) {
                 Assert.assertNotNull(document.get("_id"));
                 Assert.assertNotNull(document.get("_rev"));
                 if(document.get("key") != null) {
                     emitter.emit(document.get("key"), null);
                 }
             }
-        }, null, "1");
+        }, "1");
         return view;
     }
 

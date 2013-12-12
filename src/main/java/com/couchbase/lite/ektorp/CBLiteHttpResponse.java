@@ -1,4 +1,4 @@
-package com.couchbase.cblite.ektorp;
+package com.couchbase.lite.ektorp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,23 +10,23 @@ import org.ektorp.util.Exceptions;
 
 import android.util.Log;
 
-import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.router.CBLRouter;
-import com.couchbase.cblite.router.CBLRouterCallbackBlock;
-import com.couchbase.cblite.router.CBLURLConnection;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.router.Router;
+import com.couchbase.lite.router.RouterCallbackBlock;
+import com.couchbase.lite.router.URLConnection;
 
-public class CBLiteHttpResponse implements HttpResponse, CBLRouterCallbackBlock {
+public class CBLiteHttpResponse implements HttpResponse, RouterCallbackBlock {
 
-    private CBLURLConnection conn;
-    private CBLRouter router;
+    private URLConnection conn;
+    private Router router;
     private InputStream is;
     final CountDownLatch doneSignal = new CountDownLatch(1);
 
-    public static CBLiteHttpResponse of(CBLURLConnection conn, CBLRouter router) throws IOException {
+    public static CBLiteHttpResponse of(URLConnection conn, Router router) throws IOException {
         return new CBLiteHttpResponse(conn, router);
     }
 
-    private CBLiteHttpResponse(CBLURLConnection conn, CBLRouter router) throws IOException {
+    private CBLiteHttpResponse(URLConnection conn, Router router) throws IOException {
         this.conn = conn;
         this.router = router;
     }
@@ -47,7 +47,7 @@ public class CBLiteHttpResponse implements HttpResponse, CBLRouterCallbackBlock 
         try {
             doneSignal.await();
         } catch (InterruptedException e) {
-            Log.e(CBLDatabase.TAG, "Interupted waiting for response", e);
+            Log.e(Database.TAG, "Interupted waiting for response", e);
         }
         return is;
     }
@@ -88,7 +88,7 @@ public class CBLiteHttpResponse implements HttpResponse, CBLRouterCallbackBlock 
         }
     }
 
-    /** CBLRouterCallbackBlock **/
+    /** RouterCallbackBlock **/
 
     @Override
     public void onResponseReady() {

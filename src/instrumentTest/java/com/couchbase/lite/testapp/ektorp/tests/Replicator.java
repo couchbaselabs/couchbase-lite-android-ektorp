@@ -1,13 +1,13 @@
-package com.couchbase.cblite.testapp.ektorp.tests;
+package com.couchbase.lite.testapp.ektorp.tests;
 
 import android.util.Log;
 
-import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.CBLFilterBlock;
-import com.couchbase.cblite.CBLRevision;
-import com.couchbase.cblite.ektorp.CBLiteHttpClient;
-import com.couchbase.cblite.replicator.CBLReplicator;
-import com.couchbase.cblite.support.HttpClientFactory;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.ReplicationFilter;
+import com.couchbase.lite.SavedRevision;
+import com.couchbase.lite.ektorp.CBLiteHttpClient;
+import com.couchbase.lite.replicator.Replication;
+import com.couchbase.lite.support.HttpClientFactory;
 
 import junit.framework.Assert;
 
@@ -34,16 +34,16 @@ import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 
 import java.io.IOException;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class Replicator extends CBLiteEktorpTestCase {
 
     public void testPush() throws IOException {
 
         CountDownLatch doneSignal = new CountDownLatch(1);
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -68,17 +68,17 @@ public class Replicator extends CBLiteEktorpTestCase {
             .build();
 
         ReplicationStatus status = dbInstance.replicate(pushCommand);
-        CBLReplicator repl = database.getReplicator(status.getSessionId());
-        ReplicationObserver replicationObserver = new ReplicationObserver(doneSignal);
-        repl.addObserver(replicationObserver);
+        Replication repl = database.getReplicator(status.getSessionId());
+        ReplicationChangeListener replicationObserver = new ReplicationChangeListener(doneSignal);
+        repl.addChangeListener(replicationObserver);
 
         try {
-            doneSignal.await();
+            boolean success = doneSignal.await(30, TimeUnit.SECONDS);
+            assertTrue(success);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         Assert.assertNotNull(status.getSessionId());
-        repl.deleteObserver(replicationObserver);
 
     }
 
@@ -87,19 +87,19 @@ public class Replicator extends CBLiteEktorpTestCase {
         CountDownLatch doneSignal = new CountDownLatch(1);
 
         // install the filter
-        database.defineFilter("evenFoo", new CBLFilterBlock() {
+        database.setFilter("evenFoo", new ReplicationFilter() {
 
             @Override
-            public boolean filter(CBLRevision revision) {
-                Integer foo = (Integer)revision.getProperties().get("foo");
-                if(foo != null && foo.intValue() % 2 == 0) {
+            public boolean filter(SavedRevision revision, Map<String, Object> params) {
+                Integer foo = (Integer) revision.getProperties().get("foo");
+                if (foo != null && foo.intValue() % 2 == 0) {
                     return true;
                 }
                 return false;
             }
         });
 
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -124,18 +124,18 @@ public class Replicator extends CBLiteEktorpTestCase {
             .build();
 
         ReplicationStatus status = dbInstance.replicate(pushCommand);
-        CBLReplicator repl = database.getReplicator(status.getSessionId());
+        Replication repl = database.getReplicator(status.getSessionId());
 
-        ReplicationObserver replicationObserver = new ReplicationObserver(doneSignal);
-        repl.addObserver(replicationObserver);
+        ReplicationChangeListener replicationObserver = new ReplicationChangeListener(doneSignal);
+        repl.addChangeListener(replicationObserver);
 
         try {
-            doneSignal.await();
+            boolean success = doneSignal.await(30, TimeUnit.SECONDS);
+            assertTrue(success);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         Assert.assertNotNull(status.getSessionId());
-        repl.deleteObserver(replicationObserver);
 
     }
 
@@ -143,7 +143,7 @@ public class Replicator extends CBLiteEktorpTestCase {
 
         CountDownLatch doneSignal = new CountDownLatch(1);
 
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -157,17 +157,18 @@ public class Replicator extends CBLiteEktorpTestCase {
             .build();
 
         ReplicationStatus status = dbInstance.replicate(pushCommand);
-        CBLReplicator repl = database.getReplicator(status.getSessionId());
-        ReplicationObserver replicationObserver = new ReplicationObserver(doneSignal);
-        repl.addObserver(replicationObserver);
+        Replication repl = database.getReplicator(status.getSessionId());
+
+        ReplicationChangeListener replicationObserver = new ReplicationChangeListener(doneSignal);
+        repl.addChangeListener(replicationObserver);
 
         try {
-            doneSignal.await();
+            boolean success = doneSignal.await(30, TimeUnit.SECONDS);
+            assertTrue(success);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         Assert.assertNotNull(status.getSessionId());
-        repl.deleteObserver(replicationObserver);
 
     }
 
@@ -175,7 +176,7 @@ public class Replicator extends CBLiteEktorpTestCase {
     public void testPullWithObserver() throws IOException {
 
         CountDownLatch doneSignal = new CountDownLatch(1);
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // push this database to the test replication server
@@ -186,21 +187,23 @@ public class Replicator extends CBLiteEktorpTestCase {
             .build();
 
         ReplicationStatus status = dbInstance.replicate(pushCommand);
-        CBLReplicator repl = database.getReplicator(status.getSessionId());
-    	ReplicationObserver replicationObserver = new ReplicationObserver(doneSignal);
-    	repl.addObserver(replicationObserver);
+        Replication repl = database.getReplicator(status.getSessionId());
+        ReplicationChangeListener replicationObserver = new ReplicationChangeListener(doneSignal);
+        repl.addChangeListener(replicationObserver);
+
 
         Assert.assertNotNull(status.getSessionId());
         Assert.assertEquals(repl.getSessionID(), status.getSessionId());
 
         try {
-            doneSignal.await();
+            boolean success = doneSignal.await(30, TimeUnit.SECONDS);
+            assertTrue(success);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         Assert.assertTrue(replicationObserver.isReplicationFinished());
-    	repl.deleteObserver(replicationObserver);
+
         	
 
     }
@@ -209,7 +212,7 @@ public class Replicator extends CBLiteEktorpTestCase {
 
         CountDownLatch doneSignal = new CountDownLatch(1);
 
-        server.setDefaultHttpClientFactory(new HttpClientFactory() {
+        manager.setDefaultHttpClientFactory(new HttpClientFactory() {
 
             @Override
             public org.apache.http.client.HttpClient getHttpClient() {
@@ -251,7 +254,7 @@ public class Replicator extends CBLiteEktorpTestCase {
             }
         });
 
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -265,17 +268,17 @@ public class Replicator extends CBLiteEktorpTestCase {
             .build();
 
         ReplicationStatus status = dbInstance.replicate(pushCommand);
-        CBLReplicator repl = database.getReplicator(status.getSessionId());
-        ReplicationObserver replicationObserver = new ReplicationObserver(doneSignal);
-        repl.addObserver(replicationObserver);
+        Replication repl = database.getReplicator(status.getSessionId());
+        ReplicationChangeListener replicationObserver = new ReplicationChangeListener(doneSignal);
+        repl.addChangeListener(replicationObserver);
 
         try {
-            doneSignal.await();
+            boolean success = doneSignal.await(30, TimeUnit.SECONDS);
+            assertTrue(success);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         Assert.assertNotNull(status.getSessionId());
-        repl.deleteObserver(replicationObserver);
 
 
     }
@@ -283,12 +286,12 @@ public class Replicator extends CBLiteEktorpTestCase {
     // this test is short-circuited because the underlying feature (replication localdb <-> localdb) doesn't work yet
     public void disabledTestPushToLocal() throws IOException {
 
-        CBLDatabase other = server.getExistingDatabaseNamed(DEFAULT_TEST_DB + "2");
+        Database other = manager.getExistingDatabase(DEFAULT_TEST_DB + "2");
         if(other != null) {
-            other.deleteDatabase();
+            other.delete();
         }
 
-        HttpClient httpClient = new CBLiteHttpClient(server);
+        HttpClient httpClient = new CBLiteHttpClient(manager);
         CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 
         // create a local database
@@ -323,19 +326,20 @@ public class Replicator extends CBLiteEktorpTestCase {
 
     }
 
-    class ReplicationObserver implements Observer {
+    class ReplicationChangeListener implements Replication.ChangeListener {
+
         public boolean replicationFinished = false;
         private CountDownLatch doneSignal;
 
-        public ReplicationObserver(CountDownLatch doneSignal) {
+        ReplicationChangeListener(CountDownLatch doneSignal) {
             super();
             this.doneSignal = doneSignal;
         }
 
         @Override
-        public void update(Observable observable, Object data) {
-            Log.d(TAG, "ReplicationObserver.update called.  observable: " + observable);
-            CBLReplicator replicator = (CBLReplicator) observable;
+        public void changed(Replication.ChangeEvent event) {
+            Log.d(TAG, "ReplicationObserver.update called.  observable: " + event.getSource());
+            Replication replicator = (Replication) event.getSource();
             if (!replicator.isRunning()) {
                 replicationFinished = true;
                 String msg = String.format("myobserver.update called, set replicationFinished to: %b", replicationFinished);
@@ -348,9 +352,11 @@ public class Replicator extends CBLiteEktorpTestCase {
             }
         }
 
-        boolean isReplicationFinished() {
+        public boolean isReplicationFinished() {
             return replicationFinished;
         }
     }
+
+
 }
 

@@ -1,4 +1,4 @@
-package com.couchbase.cblite.ektorp;
+package com.couchbase.lite.ektorp;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.HttpResponse;
@@ -17,17 +16,17 @@ import org.ektorp.util.Exceptions;
 
 import android.util.Log;
 
-import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.CBLServer;
-import com.couchbase.cblite.router.CBLRouter;
-import com.couchbase.cblite.router.CBLURLConnection;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.router.Router;
+import com.couchbase.lite.router.URLConnection;
 
 public class CBLiteHttpClient implements HttpClient {
 
-    private CBLServer server;
+    private Manager manager;
 
-    public CBLiteHttpClient(CBLServer server) {
-        this.server = server;
+    public CBLiteHttpClient(Manager manager) {
+        this.manager = manager;
     }
 
     protected URL urlFromUri(String uri) {
@@ -35,17 +34,17 @@ public class CBLiteHttpClient implements HttpClient {
         try {
             url = new URL(String.format("cblite://%s", uri));
         } catch (MalformedURLException e) {
-            Log.w(CBLDatabase.TAG, "Unable to build CBLite URL", e);
+            Log.w(Database.TAG, "Unable to build CBLite URL", e);
             throw Exceptions.propagate(e);
         }
         return url;
     }
 
-    protected CBLURLConnection connectionFromUri(String uri) {
-        CBLURLConnection conn = null;
+    protected URLConnection connectionFromUri(String uri) {
+        URLConnection conn = null;
         URL url = urlFromUri(uri);
         try {
-            conn = (CBLURLConnection) url.openConnection();
+            conn = (URLConnection) url.openConnection();
             conn.setDoOutput(true);
         } catch (IOException e) {
             Exceptions.propagate(e);
@@ -55,7 +54,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse delete(String uri) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("DELETE");
             return executeRequest(conn);
@@ -66,7 +65,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse get(String uri) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("GET");
             return executeRequest(conn);
@@ -82,7 +81,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse head(String uri) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("HEAD");
             return executeRequest(conn);
@@ -93,7 +92,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse post(String uri, String content) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("POST");
 
@@ -111,7 +110,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse post(String uri, InputStream contentStream) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("POST");
 
@@ -133,7 +132,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse put(String uri) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("PUT");
 
@@ -145,7 +144,7 @@ public class CBLiteHttpClient implements HttpClient {
 
     @Override
     public HttpResponse put(String uri, String content) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("PUT");
 
@@ -164,7 +163,7 @@ public class CBLiteHttpClient implements HttpClient {
     @Override
     public HttpResponse put(String uri, InputStream contentStream,
             String contentType, long contentLength) {
-        CBLURLConnection conn = connectionFromUri(uri);
+        URLConnection conn = connectionFromUri(uri);
         try {
             conn.setRequestMethod("PUT");
 
@@ -185,8 +184,8 @@ public class CBLiteHttpClient implements HttpClient {
 
     }
 
-    protected HttpResponse executeRequest(CBLURLConnection conn) {
-        final CBLRouter router = new CBLRouter(server, conn);
+    protected HttpResponse executeRequest(URLConnection conn) {
+        final Router router = new Router(manager, conn);
         CBLiteHttpResponse response;
         try {
             response = CBLiteHttpResponse.of(conn, router);
@@ -194,7 +193,7 @@ public class CBLiteHttpClient implements HttpClient {
             throw Exceptions.propagate(e);
         }
         router.setCallbackBlock(response);
-        ScheduledExecutorService workExecutor = server.getWorkExecutor();
+        ScheduledExecutorService workExecutor = manager.getWorkExecutor();
         Future<?> routerFuture = workExecutor.submit(new Runnable() {
             @Override
             public void run() {

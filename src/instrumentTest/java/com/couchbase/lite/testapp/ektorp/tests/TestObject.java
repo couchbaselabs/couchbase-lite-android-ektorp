@@ -1,4 +1,4 @@
-package com.couchbase.cblite.testapp.ektorp.tests;
+package com.couchbase.lite.testapp.ektorp.tests;
 
 import org.ektorp.support.OpenCouchDbDocument;
 
