@@ -64,21 +64,21 @@ public class Views extends CBLiteEktorpTestCase {
 
     public static View createViewWithReduce(Database db) {
         View view = db.getView(String.format("%s/%s", dDocName, viewReduceName));
-        view.setMapAndReduce(new Mapper() {
-                                 @Override
-                                 public void map(Map<String, Object> document, Emitter emitter) {
-                                     Assert.assertNotNull(document.get("_id"));
-                                     Assert.assertNotNull(document.get("_rev"));
-                                     if(document.get("key") != null) {
-                                         emitter.emit(document.get("key"), 1);
-                                     }
-                                 }
-                             }, new Reducer() {
-                                 @Override
-                                 public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) {
-                                     return View.totalValues(values);
-                                 }
-                             }, "1"
+        view.setMapReduce(new Mapper() {
+                              @Override
+                              public void map(Map<String, Object> document, Emitter emitter) {
+                                  Assert.assertNotNull(document.get("_id"));
+                                  Assert.assertNotNull(document.get("_rev"));
+                                  if (document.get("key") != null) {
+                                      emitter.emit(document.get("key"), 1);
+                                  }
+                              }
+                          }, new Reducer() {
+                              @Override
+                              public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) {
+                                  return View.totalValues(values);
+                              }
+                          }, "1"
         );
         return view;
     }
@@ -192,20 +192,20 @@ public class Views extends CBLiteEktorpTestCase {
         String viewName = "people";
         View view = database.getView(String.format("%s/%s", dDocName, viewName));
 
-        view.setMapAndReduce(new Mapper() {
-                                 @Override
-                                 public void map(Map<String, Object> document, Emitter emitter) {
-                                     String type = (String)document.get("type");
-                                     if("person".equals(type)) {
-                                         emitter.emit(null, document.get("_id"));
-                                     }
-                                 }
-                             }, new Reducer() {
-                                 @Override
-                                 public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) {
-                                     return null;
-                                 }
-                             }, "1"
+        view.setMapReduce(new Mapper() {
+                              @Override
+                              public void map(Map<String, Object> document, Emitter emitter) {
+                                  String type = (String) document.get("type");
+                                  if ("person".equals(type)) {
+                                      emitter.emit(null, document.get("_id"));
+                                  }
+                              }
+                          }, new Reducer() {
+                              @Override
+                              public Object reduce(List<Object> keys, List<Object> values, boolean rereduce) {
+                                  return null;
+                              }
+                          }, "1"
         );
 
         ViewQuery viewQuery = new ViewQuery().designDocId("_design/" + dDocName).viewName(viewName);
