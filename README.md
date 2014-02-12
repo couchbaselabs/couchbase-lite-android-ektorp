@@ -10,7 +10,8 @@ This assumes that `~/MyProject` is an Android Studio project which contains a se
 
 ```
 $ cd ~/MyProject
-$ git submodule add https://github.com/couchbaselabs/couchbase-lite-android-ektorp.git CBLiteEktorp
+$ mkdir libraries && cd libraries
+$ git submodule add https://github.com/couchbaselabs/couchbase-lite-android-ektorp.git
 ```
 
 *Step #2*: add an entry to settings.gradle.
@@ -18,11 +19,11 @@ $ git submodule add https://github.com/couchbaselabs/couchbase-lite-android-ekto
 Before change:
 
 ```
-include ':CouchChatAndroid', ':CBLite'
-``` 
+include ':CouchChatAndroid', ':libraries:coucbase-lite-java-core', ':libraries:couchbase-lite-android'
+```
 
 After change:
 
 ```
-include ':CouchChatAndroid', ':CBLite', ':CBLiteEktorp'
+include ':CouchChatAndroid', ':libraries:coucbase-lite-java-core', ':libraries:couchbase-lite-android', ':libraries:couchbase-lite-android-ektorp'
 ```
