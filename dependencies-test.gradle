@@ -9,7 +9,7 @@ dependencies {
     // compile 'com.couchbase.cblite:CBLite:0.7'
 
     compile project(':libraries:couchbase-lite-java-core')
-    compile project(':libraries:couchbase-lite-android')
+    // compile project(':libraries:couchbase-lite-android')
 
     // as discovered by trial and error, the build will fail if "compile" is
     // used: Error: duplicate files during packaging of APK.  I guess it is
