@@ -284,7 +284,7 @@ public class Replicator extends CBLiteEktorpTestCase {
     }
 
     // this test is short-circuited because the underlying feature (replication localdb <-> localdb) doesn't work yet
-    public void disabledTestPushToLocal() throws IOException {
+    public void disabledTestPushToLocal() throws Exception, IOException {
 
         Database other = manager.getExistingDatabase(DEFAULT_TEST_DB + "2");
         if(other != null) {

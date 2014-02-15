@@ -4,6 +4,7 @@ import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.internal.Body;
@@ -64,7 +65,7 @@ public abstract class CBLiteEktorpTestCase extends InstrumentationTestCase {
         return getInstrumentation().getContext().getFilesDir();
     }
 
-    protected void startCBLite() {
+    protected void startCBLite() throws CouchbaseLiteException, IOException {
         File serverPathFile = getServerPath();
         FileDirUtils.deleteRecursive(serverPathFile);
         serverPathFile.mkdir();
@@ -77,7 +78,7 @@ public abstract class CBLiteEktorpTestCase extends InstrumentationTestCase {
         }
     }
 
-    protected void startDatabase() {
+    protected void startDatabase() throws CouchbaseLiteException {
         database = ensureEmptyDatabase(DEFAULT_TEST_DB);
         boolean status = database.open();
         Assert.assertTrue(status);
@@ -89,11 +90,10 @@ public abstract class CBLiteEktorpTestCase extends InstrumentationTestCase {
         }
     }
 
-    protected Database ensureEmptyDatabase(String dbName) {
+    protected Database ensureEmptyDatabase(String dbName) throws CouchbaseLiteException {
         Database db = manager.getExistingDatabase(dbName);
         if(db != null) {
-            boolean status = db.delete();
-            Assert.assertTrue(status);
+            db.delete();
         }
         db = manager.getDatabase(dbName);
         return db;
