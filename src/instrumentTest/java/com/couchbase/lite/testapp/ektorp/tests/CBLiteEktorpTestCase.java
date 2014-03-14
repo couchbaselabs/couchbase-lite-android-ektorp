@@ -7,6 +7,7 @@ import android.util.Log;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.internal.Body;
 import com.couchbase.lite.router.Router;
 import com.couchbase.lite.router.URLConnection;
@@ -69,7 +70,7 @@ public abstract class CBLiteEktorpTestCase extends InstrumentationTestCase {
         File serverPathFile = getServerPath();
         FileDirUtils.deleteRecursive(serverPathFile);
         serverPathFile.mkdir();
-        manager = new Manager(getServerPath(), Manager.DEFAULT_OPTIONS);
+        manager = new Manager(new AndroidContext(getInstrumentation().getContext()), Manager.DEFAULT_OPTIONS);
     }
 
     protected void stopCBLite() {
