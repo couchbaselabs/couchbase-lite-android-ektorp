@@ -157,7 +157,8 @@ public class Views extends CBLiteEktorpTestCase {
         Assert.assertEquals("one", result.getRows().get(1).getKey());
 
         // All docs
-        query = new ViewQuery().allDocs().includeDocs(true).keys(keys);
+        ArrayList ids = new ArrayList<String>();
+        query = new ViewQuery().allDocs().includeDocs(true).keys(ids);
         result = dbConnector.queryView(query);
         Assert.assertEquals(2, result.getTotalRows());
 
