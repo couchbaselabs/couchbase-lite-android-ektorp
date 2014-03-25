@@ -18,6 +18,7 @@ import org.ektorp.impl.StdCouchDbInstance;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -154,6 +155,12 @@ public class Views extends CBLiteEktorpTestCase {
         Assert.assertEquals(2, result.getTotalRows());
         Assert.assertEquals("four", result.getRows().get(0).getKey());
         Assert.assertEquals("one", result.getRows().get(1).getKey());
+
+        // All docs
+        query = new ViewQuery().allDocs().includeDocs(true).keys(keys);
+        result = dbConnector.queryView(query);
+        Assert.assertEquals(2, result.getTotalRows());
+
     }
 
     public void testViewReduceQuery() throws IOException {
