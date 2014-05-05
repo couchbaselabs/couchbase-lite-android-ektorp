@@ -10,7 +10,7 @@ dependencies {
     // used: Error: duplicate files during packaging of APK.  I guess it is
     // being implicitly included by being in the libs folder, and then "double included"
     // because of a "compile" directive to explicitly include the jar.
-    instrumentTestCompile fileTree(dir: 'libs', include: 'td_collator_so.jar')
+    androidTestCompile fileTree(dir: 'libs', include: 'td_collator_so.jar')
 
     compile 'org.ektorp:org.ektorp:1.2.4'
     compile 'org.ektorp:org.ektorp.android:1.2.3'
