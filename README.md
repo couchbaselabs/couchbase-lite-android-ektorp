@@ -27,3 +27,7 @@ After change:
 ```
 include ':CouchChatAndroid', ':libraries:coucbase-lite-java-core', ':libraries:couchbase-lite-android', ':libraries:couchbase-lite-android-ektorp'
 ```
+
+# Ektorp version
+
+This uses a [forked version of Ektorp](https://github.com/couchbaselabs/Ektorp/tree/issue88_workaround) based on Ektorp 1.2.2.  
