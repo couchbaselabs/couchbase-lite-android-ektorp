@@ -1,25 +1,27 @@
 package com.couchbase.lite.ektorp;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-
-import org.ektorp.http.HttpClient;
-import org.ektorp.http.HttpResponse;
-import org.ektorp.util.Exceptions;
-
 import android.util.Log;
 
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.router.Router;
 import com.couchbase.lite.router.URLConnection;
+
+import org.apache.http.HttpEntity;
+import org.ektorp.http.HttpClient;
+import org.ektorp.http.HttpResponse;
+import org.ektorp.util.Exceptions;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class CBLiteHttpClient implements HttpClient {
 
@@ -75,6 +77,26 @@ public class CBLiteHttpClient implements HttpClient {
     }
 
     @Override
+    public HttpResponse get(String uri, Map<String, String> headers) {
+
+        URLConnection conn = connectionFromUri(uri);
+        try {
+            conn.setRequestMethod("GET");
+
+            if( headers != null && !headers.isEmpty()) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    conn.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
+
+            return executeRequest(conn);
+        } catch (ProtocolException e) {
+            throw Exceptions.propagate(e);
+        }
+
+    }
+
+    @Override
     public HttpResponse getUncached(String uri) {
         return get(uri);
     }
@@ -126,8 +148,45 @@ public class CBLiteHttpClient implements HttpClient {
     }
 
     @Override
+    public HttpResponse post(String uri, HttpEntity httpEntity) {
+
+        URLConnection conn = connectionFromUri(uri);
+        try {
+            conn.setRequestMethod("POST");
+
+            InputStream contentStream = httpEntity.getContent();
+
+
+            if (contentStream != null) {
+                conn.setDoInput(true);
+                conn.setRequestInputStream(contentStream);
+            }
+
+            return executeRequest(conn);
+        } catch (ProtocolException e) {
+            throw Exceptions.propagate(e);
+        } catch (IOException e) {
+            throw Exceptions.propagate(e);
+        }
+    }
+
+    @Override
     public HttpResponse postUncached(String uri, String content) {
         return post(uri, content);
+    }
+
+    @Override
+    public HttpResponse copy(String sourceUri, String destination) {
+
+        URLConnection conn = connectionFromUri(sourceUri);
+        try {
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Destination", destination);
+
+            return executeRequest(conn);
+        } catch (ProtocolException e) {
+            throw Exceptions.propagate(e);
+        }
     }
 
     @Override
@@ -172,6 +231,19 @@ public class CBLiteHttpClient implements HttpClient {
                 conn.setRequestProperty("content-type", contentType);
                 conn.setRequestInputStream(contentStream);
             }
+
+            return executeRequest(conn);
+        } catch (ProtocolException e) {
+            throw Exceptions.propagate(e);
+        }
+    }
+
+    @Override
+    public HttpResponse put(String uri, HttpEntity httpEntity) {
+
+        URLConnection conn = connectionFromUri(uri);
+        try {
+            conn.setRequestMethod("PUT");
 
             return executeRequest(conn);
         } catch (ProtocolException e) {

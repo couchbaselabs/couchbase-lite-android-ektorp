@@ -3,10 +3,10 @@ buildscript {
         maven { url 'http://repo1.maven.org/maven2' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:1.1.0'
     }
 }
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 
@@ -21,7 +21,7 @@ apply from: 'dependencies-test.gradle'       // <- enable this when testing
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.0"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 9
@@ -62,28 +62,28 @@ task uploadArchivesWrapper(dependsOn: createMavenDirectory) << {
     uploadArchives.execute()
 }
 
-// this will upload, but will not first create a directory (which is needed on some servers)
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: System.getenv("UPLOAD_MAVEN_REPO_URL")) {
-                authentication(userName: System.getenv("UPLOAD_USERNAME"), password: System.getenv("UPLOAD_PASSWORD"))
-            }
-            pom.version = System.getenv("UPLOAD_VERSION_CBLITE_EKTORP")  // eg, 0.7.2
-            pom.groupId = 'com.couchbase.cblite'
-            pom.artifactId = 'CBLiteEktorp'
-            pom.project {
-                licenses {
-                    license {
-                        name 'Couchbase Community Edition License Agreement'
-                        url 'http://www.couchbase.com/agreement/community'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
+//// this will upload, but will not first create a directory (which is needed on some servers)
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            repository(url: System.getenv("UPLOAD_MAVEN_REPO_URL")) {
+//                authentication(userName: System.getenv("UPLOAD_USERNAME"), password: System.getenv("UPLOAD_PASSWORD"))
+//            }
+//            pom.version = System.getenv("UPLOAD_VERSION_CBLITE_EKTORP")  // eg, 0.7.2
+//            pom.groupId = 'com.couchbase.cblite'
+//            pom.artifactId = 'CBLiteEktorp'
+//            pom.project {
+//                licenses {
+//                    license {
+//                        name 'Couchbase Community Edition License Agreement'
+//                        url 'http://www.couchbase.com/agreement/community'
+//                        distribution 'repo'
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'
