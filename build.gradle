@@ -62,28 +62,34 @@ task uploadArchivesWrapper(dependsOn: createMavenDirectory) << {
     uploadArchives.execute()
 }
 
+def mavenPath() {
+    System.getenv("MAVEN_BUILD_LOCAL") == "true" ?
+            'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath :
+            System.getenv("MAVEN_UPLOAD_REPO_URL")
+}
+
 //// this will upload, but will not first create a directory (which is needed on some servers)
-//uploadArchives {
-//    repositories {
-//        mavenDeployer {
-//            repository(url: System.getenv("UPLOAD_MAVEN_REPO_URL")) {
-//                authentication(userName: System.getenv("UPLOAD_USERNAME"), password: System.getenv("UPLOAD_PASSWORD"))
-//            }
-//            pom.version = System.getenv("UPLOAD_VERSION_CBLITE_EKTORP")  // eg, 0.7.2
-//            pom.groupId = 'com.couchbase.cblite'
-//            pom.artifactId = 'CBLiteEktorp'
-//            pom.project {
-//                licenses {
-//                    license {
-//                        name 'Couchbase Community Edition License Agreement'
-//                        url 'http://www.couchbase.com/agreement/community'
-//                        distribution 'repo'
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: mavenPath()) {
+                authentication(userName: System.getenv("MAVEN_UPLOAD_USERNAME"), password: System.getenv("MAVEN_UPLOAD_PASSWORD"))
+            }
+            pom.version = System.getenv("MAVEN_UPLOAD_VERSION") != null ? System.getenv("MAVEN_UPLOAD_VERSION") : ''
+            pom.groupId = 'com.couchbase.cblite'
+            pom.artifactId = 'CBLiteEktorp'
+            pom.project {
+                licenses {
+                    license {
+                        name 'Couchbase Community Edition License Agreement'
+                        url 'http://www.couchbase.com/agreement/community'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'
