@@ -53,7 +53,12 @@ public class CBLiteHttpResponse implements HttpResponse, RouterCallbackBlock {
     }
 
     @Override
-    public int getContentLength() {
+    public String getETag() {
+        return conn.getHeaderField("ETag");
+    }
+
+    @Override
+    public long getContentLength() {
         getContent();
         return conn.getContentLength();
     }

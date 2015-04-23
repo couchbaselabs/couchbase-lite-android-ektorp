@@ -1,12 +1,12 @@
 buildscript {
     repositories {
-        maven { url 'http://repo1.maven.org/maven2' }
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:1.1.0'
     }
 }
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 
@@ -21,7 +21,7 @@ apply from: 'dependencies-test.gradle'       // <- enable this when testing
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.0"
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
         minSdkVersion 9
@@ -62,14 +62,20 @@ task uploadArchivesWrapper(dependsOn: createMavenDirectory) << {
     uploadArchives.execute()
 }
 
-// this will upload, but will not first create a directory (which is needed on some servers)
+def mavenPath() {
+    System.getenv("MAVEN_BUILD_LOCAL") == "true" ?
+            'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath :
+            System.getenv("MAVEN_UPLOAD_REPO_URL")
+}
+
+//// this will upload, but will not first create a directory (which is needed on some servers)
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: System.getenv("UPLOAD_MAVEN_REPO_URL")) {
-                authentication(userName: System.getenv("UPLOAD_USERNAME"), password: System.getenv("UPLOAD_PASSWORD"))
+            repository(url: mavenPath()) {
+                authentication(userName: System.getenv("MAVEN_UPLOAD_USERNAME"), password: System.getenv("MAVEN_UPLOAD_PASSWORD"))
             }
-            pom.version = System.getenv("UPLOAD_VERSION_CBLITE_EKTORP")  // eg, 0.7.2
+            pom.version = System.getenv("MAVEN_UPLOAD_VERSION") != null ? System.getenv("MAVEN_UPLOAD_VERSION") : ''
             pom.groupId = 'com.couchbase.cblite'
             pom.artifactId = 'CBLiteEktorp'
             pom.project {
