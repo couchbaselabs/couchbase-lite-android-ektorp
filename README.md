@@ -1,3 +1,5 @@
+⚠️ This repo is outdated.  It uses a version of Couchbase Lite that reached end of life years ago.
+
 # What is CBLiteEktorp?
 
 CBLiteEktorp is something to make it easy to access a [Couchbase Lite](https://github.com/couchbase/couchbase-lite-android) database via Ektorp.  
